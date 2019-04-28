@@ -10,7 +10,7 @@ import keras.backend as K
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 
-char = True
+char = False
 TRAIN_PATH = './DMT/TRAININGSET-DMT_SIMP-VARDIAL2019/train.txt'
 TEST_PATH = './DMT/TRAININGSET-DMT_SIMP-VARDIAL2019/dev.txt'
 
@@ -40,21 +40,33 @@ def build_dataframe(train_path, test_path, char=False):
 
 
 def bilstm():
-    embed_dim = 128
-    batch_size = 32
-    model = Sequential()
-    model.add(Embedding(max_features, embed_dim, input_length=x_train.shape[1]))
-    model.add(Bidirectional(LSTM(100, return_sequences=True, dropout=0.25, recurrent_dropout=0.1)))
-    model.add(GlobalMaxPool1D())
-    model.add(Dense(100, activation='relu'))
-    model.add(Dropout(0.25))
-    model.add(Dense(2, activation='sigmoid'))
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-    early_stopping_monitor = EarlyStopping(patience=4)
-
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=10, verbose=1, callbacks=[early_stopping_monitor], validation_split=0.1)
-    save_model(model)
+    try:
+        if not char:
+            with open('model.json', 'r') as f:
+                model = model_from_json(f.read())
+            model.load_weights('model_weights.h5')
+            print("Model loaded from disk")
+            model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        else:
+            with open('model.json_char', 'r') as f:
+                model = model_from_json(f.read())
+            model.load_weights('model_weights_char.h5')
+            print("Model loaded from disk")
+            model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    except:
+        embed_dim = 128
+        batch_size = 32
+        model = Sequential()
+        model.add(Embedding(max_features, embed_dim, input_length=x_train.shape[1]))
+        model.add(Bidirectional(LSTM(100, return_sequences=True, dropout=0.25, recurrent_dropout=0.1)))
+        model.add(GlobalMaxPool1D())
+        model.add(Dense(100, activation='relu'))
+        model.add(Dropout(0.25))
+        model.add(Dense(2, activation='sigmoid'))
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        early_stopping_monitor = EarlyStopping(patience=4)
+        model.fit(x_train, y_train, batch_size=batch_size, epochs=10, verbose=1, callbacks=[early_stopping_monitor], validation_split=0.1)
+        save_model(model)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
 
