@@ -1,5 +1,5 @@
 # Chinese-Dialect-Classification
-Project for TDT4310: Classification of Mandarin text from Mainland China and Taiwan.
+Classification of Mandarin text from Mainland China and Taiwan.
 
 To run the POS tagger you need to download the Stanford Tagger (Full Version): https://nlp.stanford.edu/software/tagger.shtml#Download
 
